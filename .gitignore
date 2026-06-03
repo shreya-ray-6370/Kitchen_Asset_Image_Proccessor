@@ -1,0 +1,12 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+backend/venv/
+
+# Local app data
+backend/db/scans.db
+backend/uploads/
