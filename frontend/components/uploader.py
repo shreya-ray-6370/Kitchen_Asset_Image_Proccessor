@@ -32,6 +32,9 @@ def uploader():
         if st.button("Run Quality Check"):
 
             data = validate_image(uploaded_file.getvalue())
+            
+            if data is None:
+                st.stop()
 
             st.session_state["grade_data"] = data
 
@@ -40,6 +43,11 @@ def uploader():
     if "grade_data" in st.session_state:
 
         data = st.session_state["grade_data"]
+        
+        if data is None or "grade" not in data:
+            st.error("❌ Invalid response from server")
+            st.stop()
+        
         grade = data["grade"]
 
         allow_submit = False
@@ -62,7 +70,10 @@ def uploader():
             compressed = compress_image(uploaded_file)
 
             # ✅ Step 6: Upload
-            upload_data = upload_image(compressed)
+            upload_data = upload_image(compressed.getvalue())
+            
+            if upload_data is None:
+                st.stop()
 
             st.session_state["scan_id"] = upload_data["scan_id"]
 

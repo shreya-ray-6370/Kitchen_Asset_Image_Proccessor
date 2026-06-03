@@ -1,4 +1,4 @@
-from fastapi import APIRouter, File, HTTPException, Request, UploadFile
+﻿from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 import uuid
 
 from backend.services.image_processor import check_quality, process_image
@@ -8,8 +8,8 @@ from backend.utils.helpers import validate_upload
 
 router = APIRouter()
 
-# ✅ QUALITY CHECK
-@router.post("/quality-check", response_model=QualityResponse)
+# âœ… QUALITY CHECK
+@router.post("/validate", response_model=QualityResponse)
 async def quality_check(file: UploadFile = File(...)):
     contents = await file.read()
 
@@ -32,8 +32,8 @@ async def quality_check(file: UploadFile = File(...)):
     }
 
 
-# ✅ UPLOAD API
-@router.post("/scans", response_model=UploadResponse)
+# âœ… UPLOAD API
+@router.post("/upload", response_model=UploadResponse)
 async def upload_scan(request: Request, file: UploadFile = File(...)):
     contents = await file.read()
 
@@ -58,7 +58,8 @@ async def upload_scan(request: Request, file: UploadFile = File(...)):
 
     scan_id = str(uuid.uuid4())
     save_scan(scan_id, processed)
-    image_url = str(request.url_for("get_uploaded_image", filename=f"{scan_id}.webp"))
+    base_url = str(request.base_url).rstrip('/')
+    image_url = f"{base_url}/uploads/{scan_id}.webp"
 
     return {
         "scan_id": scan_id,
@@ -66,7 +67,7 @@ async def upload_scan(request: Request, file: UploadFile = File(...)):
     }
 
 
-# ✅ GRADING LOGIC
+# âœ… GRADING LOGIC
 def evaluate_grade(metrics):
     sharp = metrics["sharpness"]
     light = metrics["lighting"]
@@ -89,3 +90,5 @@ def evaluate_grade(metrics):
         return "Acceptable", "Minor issues", fixes
 
     return "Marginal", "Poor quality image", fixes
+
+
