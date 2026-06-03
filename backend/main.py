@@ -1,4 +1,5 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI
+from fastapi import File, UploadFile
 from fastapi.staticfiles import StaticFiles
 
 from backend.routes.condition import router as condition_router
@@ -9,7 +10,7 @@ from backend.services.sqlite_service import UPLOAD_DIR, init_db
 app = FastAPI(title="Kitchen Asset Image Processor")
 
 # Person 2 upload APIs
-app.include_router(upload_router, prefix="/api/v1")
+app.include_router(upload_router, prefix="/api/v1/image")
 
 # Person 3 condition API
 app.include_router(condition_router)
