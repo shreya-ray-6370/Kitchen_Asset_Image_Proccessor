@@ -26,7 +26,7 @@ def uploader():
 
     if uploaded_file:
         image = Image.open(uploaded_file)
-        st.image(image, use_container_width=True)
+        st.image(image, use_column_width=True)
 
         # ✅ Step 2: Validate
         if st.button("Run Quality Check"):
