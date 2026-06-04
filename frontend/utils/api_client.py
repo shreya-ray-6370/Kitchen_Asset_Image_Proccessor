@@ -80,3 +80,22 @@ def get_condition(scan_id):
     except Exception as e:
         st.error(f"❌ Connection error: {str(e)}")
         return None
+
+
+def get_scan_history():
+    """Fetch all uploaded scans with condition summary."""
+    url = get_base_url()
+
+    try:
+        res = requests.get(f"{url}/api/v1/scans", timeout=15)
+
+        if res.status_code != 200:
+            error_detail = _extract_error_detail(res)
+            st.error(f"❌ Error: {error_detail}")
+            return None
+
+        return res.json()
+
+    except Exception as e:
+        st.error(f"❌ Connection error: {str(e)}")
+        return None
