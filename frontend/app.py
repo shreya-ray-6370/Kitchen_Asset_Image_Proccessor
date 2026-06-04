@@ -65,6 +65,7 @@ footer {visibility: hidden;}
 # -----------------------------
 from components.uploader import uploader
 from components.results import results
+from components.history import history_view
 
 # -----------------------------
 # SIDEBAR
@@ -73,7 +74,7 @@ st.sidebar.markdown("## 🍳 Kitchen Asset Processor")
 
 menu = st.sidebar.radio(
     "Navigation",
-    ["New Scan", "Results"],
+    ["New Scan", "Results", "History"],
     key="nav_menu"   # ✅ FIX: prevents duplicate widget error
 )
 
@@ -114,6 +115,9 @@ with left:
 
     elif menu == "Results":
         results()
+
+    elif menu == "History":
+        history_view()
 
     st.markdown('</div>', unsafe_allow_html=True)
 

@@ -5,6 +5,7 @@ import numpy as np
 
 from backend.db.in_memory_store import condition_store
 from backend.models.schemas import ConditionResponse, DefectTag
+from backend.services.sqlite_service import get_condition_payload, save_condition
 
 
 def _severity_from_ratio(ratio: float, medium_cutoff: float, high_cutoff: float) -> str:
@@ -107,8 +108,19 @@ def run_condition_scoring(scan_id: str, image_bytes: bytes) -> ConditionResponse
 	image = _decode_image(image_bytes)
 	condition = _score_image(scan_id, image)
 	condition_store.upsert(condition)
+	save_condition(scan_id=scan_id, condition_payload=condition.model_dump())
 	return condition
 
 
 def get_condition(scan_id: str) -> ConditionResponse | None:
-	return condition_store.get(scan_id)
+	cached = condition_store.get(scan_id)
+	if cached is not None:
+		return cached
+
+	payload = get_condition_payload(scan_id)
+	if payload is None:
+		return None
+
+	condition = ConditionResponse(**payload)
+	condition_store.upsert(condition)
+	return condition

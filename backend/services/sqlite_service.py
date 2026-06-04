@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import json
 from pathlib import Path
 from typing import Optional
 
@@ -17,9 +18,22 @@ def init_db():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS scans (
         scan_id TEXT PRIMARY KEY,
-        image_path TEXT NOT NULL
+        image_path TEXT NOT NULL,
+        condition_payload TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )
     """)
+
+    # Backward-compatible migration for earlier table shape.
+    cursor.execute("PRAGMA table_info(scans)")
+    columns = {row[1] for row in cursor.fetchall()}
+    if "condition_payload" not in columns:
+        cursor.execute("ALTER TABLE scans ADD COLUMN condition_payload TEXT")
+    if "created_at" not in columns:
+        cursor.execute("ALTER TABLE scans ADD COLUMN created_at TEXT")
+        cursor.execute(
+            "UPDATE scans SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL"
+        )
 
     conn.commit()
     conn.close()
@@ -37,8 +51,13 @@ def save_scan(scan_id, image_bytes):
     cursor = conn.cursor()
 
     cursor.execute(
-        "INSERT OR REPLACE INTO scans (scan_id, image_path) VALUES (?, ?)",
-        (scan_id, str(filepath))
+        """
+        INSERT INTO scans (scan_id, image_path, created_at)
+        VALUES (?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(scan_id) DO UPDATE SET
+            image_path = excluded.image_path
+        """,
+        (scan_id, str(filepath)),
     )
 
     conn.commit()
@@ -54,3 +73,52 @@ def get_scan_path(scan_id: str) -> Optional[str]:
     row = cursor.fetchone()
     conn.close()
     return row[0] if row else None
+
+
+def save_condition(scan_id: str, condition_payload: dict) -> None:
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE scans SET condition_payload = ? WHERE scan_id = ?",
+        (json.dumps(condition_payload), scan_id),
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_condition_payload(scan_id: str) -> Optional[dict]:
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT condition_payload FROM scans WHERE scan_id = ?", (scan_id,))
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row or not row[0]:
+        return None
+    return json.loads(row[0])
+
+
+def list_scan_records() -> list[dict]:
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT scan_id, image_path, condition_payload, created_at
+        FROM scans
+        ORDER BY datetime(created_at) DESC
+        """
+    )
+    rows = cursor.fetchall()
+    conn.close()
+
+    records: list[dict] = []
+    for scan_id, image_path, condition_payload, created_at in rows:
+        records.append(
+            {
+                "scan_id": scan_id,
+                "image_path": image_path,
+                "condition_payload": json.loads(condition_payload) if condition_payload else None,
+                "created_at": created_at,
+            }
+        )
+    return records

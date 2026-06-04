@@ -2,6 +2,7 @@
 import uuid
 
 from backend.services.image_processor import check_quality, process_image
+from backend.services.ai_service import run_condition_scoring
 from backend.services.sqlite_service import save_scan
 from backend.models.schemas import ErrorResponse, QualityResponse, UploadResponse
 from backend.utils.helpers import validate_upload
@@ -58,6 +59,8 @@ async def upload_scan(request: Request, file: UploadFile = File(...)):
 
     scan_id = str(uuid.uuid4())
     save_scan(scan_id, processed)
+    # Run condition scoring immediately after successful upload so GET condition can fetch by scan_id.
+    run_condition_scoring(scan_id=scan_id, image_bytes=processed)
     base_url = str(request.base_url).rstrip('/')
     image_url = f"{base_url}/uploads/{scan_id}.webp"
 

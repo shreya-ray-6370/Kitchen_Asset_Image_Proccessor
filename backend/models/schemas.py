@@ -38,3 +38,14 @@ class ConditionResponse(BaseModel):
     defect_tags: list[DefectTag]
     severity: str = Field(description="minor | moderate | severe")
     recommended_action: str
+
+
+class ScanHistoryItem(BaseModel):
+    scan_id: str
+    image_url: str
+    created_at: str | None = None
+    condition: ConditionResponse | None = None
+
+
+class ScanHistoryResponse(BaseModel):
+    items: list[ScanHistoryItem]
