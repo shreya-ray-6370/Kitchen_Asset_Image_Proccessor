@@ -32,12 +32,25 @@ class DefectTag(BaseModel):
     confidence: float = Field(ge=0.0, le=1.0)
 
 
+class ModelConditionResult(BaseModel):
+    model: str
+    condition_score: int = Field(ge=0, le=100)
+    defect_tags: list[DefectTag]
+    severity: str = Field(description="minor | moderate | severe")
+    recommended_action: str
+    rationale: str | None = None
+    confidence: float | None = Field(default=None, ge=0.0, le=1.0)
+
+
 class ConditionResponse(BaseModel):
     scan_id: str
     condition_score: int = Field(ge=0, le=100)
     defect_tags: list[DefectTag]
     severity: str = Field(description="minor | moderate | severe")
     recommended_action: str
+    opencv_result: ModelConditionResult | None = None
+    gpt4_result: ModelConditionResult | None = None
+    comparison_note: str | None = None
 
 
 class ScanHistoryItem(BaseModel):

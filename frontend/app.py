@@ -105,28 +105,15 @@ with col2:
 # -----------------------------
 # MAIN LAYOUT
 # -----------------------------
-left, right = st.columns([1.2, 1])
+st.markdown('<div class="card">', unsafe_allow_html=True)
 
-with left:
-    st.markdown('<div class="card">', unsafe_allow_html=True)
+if menu == "New Scan":
+    uploader()
 
-    if menu == "New Scan":
-        uploader()
+elif menu == "Results":
+    results()
 
-    elif menu == "Results":
-        results()
+elif menu == "History":
+    history_view()
 
-    elif menu == "History":
-        history_view()
-
-    st.markdown('</div>', unsafe_allow_html=True)
-
-with right:
-    st.markdown("""
-    <div class="card">
-        <div style="text-align:center;color:#777;padding:40px 10px;">
-            <h3>📦 Ready for Scan</h3>
-            <p>Upload an appliance image to analyze quality & metadata</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)

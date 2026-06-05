@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kitchen Intelligence - Project Flow Tutorial</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #111827;
+      --panel-2: #0f172a;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #22d3ee;
+      --ok: #34d399;
+      --warn: #fbbf24;
+      --bad: #f87171;
+      --border: #1f2937;
+      --code: #0a0f1a;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at 20% 0%, #111827 0%, var(--bg) 40%);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 18px 60px;
+    }
+
+    .hero {
+      background: linear-gradient(140deg, #0f172a, #111827 60%, #0b1220);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.8rem;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .chip {
+      font-size: 0.82rem;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      background: #0b1324;
+      border-radius: 999px;
+      padding: 5px 10px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 14px;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 1.2rem;
+      color: #f8fafc;
+    }
+
+    h3 {
+      margin: 14px 0 8px;
+      font-size: 1rem;
+      color: #cbd5e1;
+    }
+
+    ol, ul {
+      margin: 8px 0 0 20px;
+      padding: 0;
+    }
+
+    li { margin: 6px 0; }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .step {
+      border: 1px solid #233043;
+      background: var(--panel-2);
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .step b { color: #f8fafc; }
+
+    .code {
+      font-family: Consolas, "Courier New", monospace;
+      background: var(--code);
+      border: 1px solid #1e293b;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #c7d2fe;
+      font-size: 0.92rem;
+    }
+
+    .note {
+      margin-top: 10px;
+      border-left: 3px solid var(--accent);
+      background: #0a1224;
+      padding: 10px 12px;
+      border-radius: 6px;
+      color: #cbd5e1;
+    }
+
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .bad { color: var(--bad); }
+
+    .footer {
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 12px;
+      text-decoration: none;
+      color: #0b1220;
+      background: linear-gradient(90deg, #22d3ee, #67e8f9);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Kitchen Intelligence Dashboard - Full Flow Tutorial</h1>
+      <p class="subtitle">Frontend + Backend + OpenCV/NumPy + SQLite + Optional GPT-4 side-by-side</p>
+      <div class="chip-row">
+        <span class="chip">Auto quality-check on upload</span>
+        <span class="chip">Sharp / Acceptable / Marginal gate</span>
+        <span class="chip">WebP compression + EXIF strip</span>
+        <span class="chip">Condition scoring (OpenCV)</span>
+        <span class="chip">GPT-4 optional parallel output</span>
+      </div>
+      <a class="btn" href="#" onclick="window.print()">Download / Save as PDF</a>
+    </section>
+
+    <section class="panel">
+      <h2>1) End-to-End Data Flow</h2>
+      <div class="flow">
+        <div class="step"><b>Step A</b><br>User uploads image in <span class="code">New Scan</span>.</div>
+        <div class="step"><b>Step B</b><br>Frontend auto-calls <span class="code">POST /api/v1/image/validate</span>.</div>
+        <div class="step"><b>Step C</b><br>Backend calculates quality metrics: sharpness, lighting, framing.</div>
+        <div class="step"><b>Step D</b><br>Grade returned: <span class="ok">Sharp</span> / <span class="warn">Acceptable</span> / <span class="bad">Marginal</span>.</div>
+        <div class="step"><b>Step E</b><br>If allowed, user submits image.</div>
+        <div class="step"><b>Step F</b><br>Frontend compresses to <span class="code">WEBP 1024x1024 quality 82</span>.</div>
+        <div class="step"><b>Step G</b><br>Backend upload route stores image, creates <span class="code">scan_id</span>.</div>
+        <div class="step"><b>Step H</b><br>Backend runs condition scoring immediately (OpenCV + NumPy heuristics).</div>
+        <div class="step"><b>Step I</b><br>Optional GPT-4 side-by-side runs in parallel (if enabled).</div>
+        <div class="step"><b>Step J</b><br>Condition payload saved in SQLite, then shown in Results/History.</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>2) Frontend Correlation</h2>
+      <ul>
+        <li>Main routing: <span class="code">frontend/app.py</span> (New Scan, Results, History)</li>
+        <li>Upload + state machine: <span class="code">frontend/components/uploader.py</span></li>
+        <li>API client wrappers: <span class="code">frontend/utils/api_client.py</span></li>
+        <li>Results rendering: <span class="code">frontend/components/results.py</span></li>
+        <li>History rendering: <span class="code">frontend/components/history.py</span></li>
+      </ul>
+      <div class="note">Session state keeps current <span class="code">api_url</span>, quality cache, file token, upload state, and <span class="code">scan_id</span> for Results fetch.</div>
+    </section>
+
+    <section class="panel">
+      <h2>3) Backend Correlation</h2>
+      <h3>Upload/Validate pipeline</h3>
+      <ul>
+        <li>Route entry: <span class="code">backend/routes/upload.py</span></li>
+        <li>File guardrails: <span class="code">backend/utils/helpers.py</span> (types + max 15 MB)</li>
+        <li>Quality metrics: <span class="code">backend/services/image_processor.py</span></li>
+        <li>Image process/compress: <span class="code">process_image()</span> in same service</li>
+      </ul>
+
+      <h3>Condition analysis pipeline</h3>
+      <ul>
+        <li>Main logic: <span class="code">backend/services/ai_service.py</span></li>
+        <li>Defect heuristics: rust, cracks, dents, stains, wear/aging</li>
+        <li>Score + severity + recommendation derived from weighted penalties</li>
+      </ul>
+
+      <h3>Persistence and retrieval</h3>
+      <ul>
+        <li>SQLite service: <span class="code">backend/services/sqlite_service.py</span></li>
+        <li>Condition routes: <span class="code">backend/routes/condition.py</span></li>
+        <li>Startup env load: <span class="code">backend/main.py</span> reads project <span class="code">.env</span></li>
+      </ul>
+    </section>
+
+    <section class="panel">
+      <h2>4) OpenCV + NumPy in Simple Terms</h2>
+      <ul>
+        <li><b>OpenCV</b>: builds masks/contours/edges from pixels.</li>
+        <li><b>NumPy</b>: computes numeric ratios/statistics (means, thresholds, penalties).</li>
+        <li>Both together give fast rule-based scoring, but not true semantic understanding.</li>
+      </ul>
+      <div class="note">This is why GPT-4 side-by-side was added: OpenCV provides deterministic baseline, GPT can provide semantic interpretation when available.</div>
+    </section>
+
+    <section class="panel">
+      <h2>5) Demo Run Checklist</h2>
+      <ol>
+        <li>Start backend and frontend on fixed ports.</li>
+        <li>Set frontend API endpoint to backend URL.</li>
+        <li>Upload image and confirm quality grade appears.</li>
+        <li>Submit image and verify scan_id is generated.</li>
+        <li>Open Results and click <span class="code">Get Condition Result</span>.</li>
+        <li>Verify main analysis + GPT-4 section status.</li>
+      </ol>
+    </section>
+
+    <p class="footer">File generated for demo handover. Use browser Print to save as PDF.</p>
+  </div>
+</body>
+</html>

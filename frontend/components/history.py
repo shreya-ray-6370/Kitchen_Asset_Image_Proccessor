@@ -46,3 +46,13 @@ def history_view():
                     st.write("No defects detected")
 
                 st.info(condition.get("recommended_action", "No recommendation"))
+
+                gpt4_result = condition.get("gpt4_result")
+                st.markdown("**GPT-4 Output:**")
+                if gpt4_result:
+                    st.write(
+                        f"{gpt4_result.get('condition_score', 0)}/100, "
+                        f"{gpt4_result.get('severity', 'minor')}"
+                    )
+                else:
+                    st.write("GPT-4 output unavailable")

@@ -6,6 +6,7 @@ __pycache__/
 .venv/
 venv/
 backend/venv/
+.env
 
 # Local app data
 backend/db/scans.db

@@ -78,18 +78,18 @@ def evaluate_grade(metrics):
 
     fixes = []
 
-    if sharp < 100:
+    if sharp < 40:
         fixes.append("Image is blurry. Hold camera steady.")
-    if light > 60:
-        fixes.append("Lighting uneven. Improve lighting.")
-    if frame < 0.4:
+    if light > 95:
+        fixes.append("Lighting uneven or strong glare detected. Reduce direct sunlight/reflections.")
+    if frame < 0.26:
         fixes.append("Object too small. Move closer.")
 
-    if sharp >= 100 and light <= 60 and frame >= 0.4:
+    if sharp >= 45 and light <= 95 and frame >= 0.26:
         return "Sharp", "Good quality image", []
 
     # Acceptable images can proceed but should show warnings in UI.
-    if sharp >= 70 and light <= 75 and frame >= 0.35:
+    if sharp >= 10 and light <= 230 and frame >= 0.15:
         return "Acceptable", "Minor issues", fixes
 
     return "Marginal", "Poor quality image", fixes

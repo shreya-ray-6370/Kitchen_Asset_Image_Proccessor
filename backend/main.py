@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi import File, UploadFile
 from fastapi.staticfiles import StaticFiles
+from pathlib import Path
+import os
 
 from backend.routes.condition import router as condition_router
 from backend.routes.upload import router as upload_router
@@ -19,6 +21,22 @@ app.include_router(condition_router)
 app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="get_uploaded_image")
 
 
+def _load_env_file() -> None:
+	env_path = Path(__file__).resolve().parent.parent / ".env"
+	if not env_path.exists():
+		return
+
+	for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+		line = raw_line.strip()
+		if not line or line.startswith("#") or "=" not in line:
+			continue
+		key, value = line.split("=", 1)
+		key = key.strip()
+		value = value.strip().strip('"').strip("'")
+		if key and key not in os.environ:
+			os.environ[key] = value
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
 	return {"status": "ok"}
@@ -26,6 +44,7 @@ def health() -> dict[str, str]:
 
 @app.on_event("startup")
 def startup_event() -> None:
+	_load_env_file()
 	init_db()
 
 
