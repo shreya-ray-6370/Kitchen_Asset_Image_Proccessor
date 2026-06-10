@@ -24,6 +24,20 @@ def _render_gpt_block(payload: dict):
         st.caption(f"Rationale: {rationale}")
 
 
+def _render_metadata_block(metadata: dict | None):
+    st.write("### Appliance Metadata")
+    if not metadata:
+        st.info("Metadata not detected")
+        return
+
+    st.write(f"Type: {metadata.get('appliance_type', 'unknown')}")
+    st.write(f"Brand: {metadata.get('brand', 'Unknown')}")
+    st.caption(
+        f"Confidence: {round(float(metadata.get('confidence', 0.0)) * 100)}%"
+        f" | Source: {metadata.get('source', 'opencv_ocr')}"
+    )
+
+
 def results():
 
     if "scan_id" not in st.session_state:
@@ -53,6 +67,8 @@ def results():
 
         st.write("### Recommended Action")
         st.info(data["recommended_action"])
+
+        _render_metadata_block(data.get("metadata"))
 
         gpt4_result = data.get("gpt4_result")
         if gpt4_result:

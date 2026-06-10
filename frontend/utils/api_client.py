@@ -27,7 +27,7 @@ def validate_image(file_bytes):
     try:
         # Wrap bytes in tuple format: (filename, content, content_type)
         files = {"file": ("image.jpg", io.BytesIO(file_bytes), "image/jpeg")}
-        res = requests.post(f"{url}/api/v1/image/validate", files=files, timeout=10)
+        res = requests.post(f"{url}/api/v1/image/validate", files=files, timeout=65)
         
         # Check for HTTP errors
         if res.status_code != 200:
@@ -48,7 +48,7 @@ def upload_image(file_bytes):
     
     try:
         files = {"file": ("image.webp", io.BytesIO(file_bytes), "image/webp")}
-        res = requests.post(f"{url}/api/v1/image/upload", files=files, timeout=10)
+        res = requests.post(f"{url}/api/v1/image/upload", files=files, timeout=65)
         
         # Check for HTTP errors
         if res.status_code not in [200, 201]:

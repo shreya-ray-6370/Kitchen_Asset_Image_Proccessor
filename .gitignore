@@ -11,3 +11,8 @@ backend/venv/
 # Local app data
 backend/db/scans.db
 backend/uploads/
+
+# ML training/evaluation artifacts
+data/quality_split/
+runs/
+*.pt

@@ -29,10 +29,24 @@ def history_view():
                 if item.get("created_at"):
                     st.markdown(f"**Created At:** {item['created_at']}")
 
+                metadata = item.get("metadata")
+                if metadata:
+                    st.markdown(
+                        f"**Appliance:** {metadata.get('appliance_type', 'unknown')}"
+                        f" | **Brand:** {metadata.get('brand', 'Unknown')}"
+                    )
+
                 condition = item.get("condition")
                 if not condition:
                     st.warning("Condition analysis not available yet.")
                     continue
+
+                cond_metadata = condition.get("metadata")
+                if not metadata and cond_metadata:
+                    st.markdown(
+                        f"**Appliance:** {cond_metadata.get('appliance_type', 'unknown')}"
+                        f" | **Brand:** {cond_metadata.get('brand', 'Unknown')}"
+                    )
 
                 st.metric("Condition Score", f"{condition['condition_score']}/100")
                 st.markdown(f"**Severity:** {condition['severity']}")

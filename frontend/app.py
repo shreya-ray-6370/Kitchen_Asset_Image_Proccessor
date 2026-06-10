@@ -57,6 +57,11 @@ footer {visibility: hidden;}
     font-weight: 600;
     height: 45px;
 }
+
+/* Hide Streamlit's default uploader hint text to avoid conflicting size message */
+.stFileUploader small {
+    display: none;
+}
 </style>
 """, unsafe_allow_html=True)
 

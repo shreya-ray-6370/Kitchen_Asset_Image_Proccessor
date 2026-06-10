@@ -1,10 +1,12 @@
 ﻿from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 import uuid
 
-from backend.services.image_processor import check_quality, process_image
+from backend.services.image_processor import process_image
 from backend.services.ai_service import run_condition_scoring
-from backend.services.sqlite_service import save_scan
-from backend.models.schemas import ErrorResponse, QualityResponse, UploadResponse
+from backend.services.metadata_service import extract_appliance_metadata
+from backend.services.quality_service import assess_image_quality
+from backend.services.sqlite_service import save_metadata, save_scan
+from backend.models.schemas import ApplianceMetadata, ErrorResponse, QualityResponse, UploadResponse
 from backend.utils.helpers import validate_upload
 
 router = APIRouter()
@@ -19,17 +21,17 @@ async def quality_check(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail={"error": message, "fix_instructions": []})
 
     try:
-        metrics = check_quality(contents)
+        quality = assess_image_quality(contents)
+        metadata = extract_appliance_metadata(contents)
     except ValueError:
         raise HTTPException(status_code=400, detail={"error": "Invalid image", "fix_instructions": []})
 
-    grade, message, fixes = evaluate_grade(metrics)
-
     return {
-        "grade": grade,
-        "metrics": metrics,
-        "message": message,
-        "fix_instructions": fixes
+        "grade": quality["grade"],
+        "metrics": quality["metrics"],
+        "message": quality["message"],
+        "fix_instructions": quality["fix_instructions"],
+        "metadata": metadata.model_dump(),
     }
 
 
@@ -43,22 +45,25 @@ async def upload_scan(request: Request, file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail={"error": message, "fix_instructions": []})
 
     try:
-        metrics = check_quality(contents)
+        quality = assess_image_quality(contents)
     except ValueError:
         raise HTTPException(status_code=400, detail={"error": "Invalid image", "fix_instructions": []})
 
-    grade, message, fixes = evaluate_grade(metrics)
-
-    if grade == "Marginal":
+    if quality["grade"] == "Marginal":
         raise HTTPException(
             status_code=422,
-            detail=ErrorResponse(error="Image quality too poor", fix_instructions=fixes).model_dump()
+            detail=ErrorResponse(
+                error="Image quality too poor",
+                fix_instructions=quality["fix_instructions"],
+            ).model_dump()
         )
 
     processed = process_image(contents)
 
     scan_id = str(uuid.uuid4())
     save_scan(scan_id, processed)
+    metadata = extract_appliance_metadata(processed)
+    save_metadata(scan_id, metadata.model_dump())
     # Run condition scoring immediately after successful upload so GET condition can fetch by scan_id.
     run_condition_scoring(scan_id=scan_id, image_bytes=processed)
     base_url = str(request.base_url).rstrip('/')
@@ -66,32 +71,8 @@ async def upload_scan(request: Request, file: UploadFile = File(...)):
 
     return {
         "scan_id": scan_id,
-        "image_url": image_url
+        "image_url": image_url,
+        "metadata": ApplianceMetadata(**metadata.model_dump()).model_dump(),
     }
-
-
-# âœ… GRADING LOGIC
-def evaluate_grade(metrics):
-    sharp = metrics["sharpness"]
-    light = metrics["lighting"]
-    frame = metrics["framing"]
-
-    fixes = []
-
-    if sharp < 40:
-        fixes.append("Image is blurry. Hold camera steady.")
-    if light > 95:
-        fixes.append("Lighting uneven or strong glare detected. Reduce direct sunlight/reflections.")
-    if frame < 0.26:
-        fixes.append("Object too small. Move closer.")
-
-    if sharp >= 45 and light <= 95 and frame >= 0.26:
-        return "Sharp", "Good quality image", []
-
-    # Acceptable images can proceed but should show warnings in UI.
-    if sharp >= 10 and light <= 230 and frame >= 0.15:
-        return "Acceptable", "Minor issues", fixes
-
-    return "Marginal", "Poor quality image", fixes
 
 

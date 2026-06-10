@@ -9,7 +9,25 @@ import requests
 
 from backend.models.schemas import DefectTag, ModelConditionResult
 
-OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
+
+def _vlm_provider() -> str:
+    return os.getenv("LLM_PROVIDER", "openai").strip().lower()
+
+
+def _vlm_base_url() -> str:
+    if _vlm_provider() == "groq":
+        return os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1").rstrip("/")
+    return "https://api.openai.com/v1"
+
+
+def _vlm_api_key() -> str:
+    if _vlm_provider() == "groq":
+        return os.getenv("GROQ_API_KEY", "").strip()
+    return os.getenv("OPENAI_API_KEY", "").strip()
+
+
+def _default_vlm_model() -> str:
+    return os.getenv("GPT4_VISION_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct")
 
 
 def _as_float(value: Any, default: float = 0.0) -> float:
@@ -69,11 +87,11 @@ def _normalize_result(payload: dict[str, Any]) -> ModelConditionResult:
 
 def run_gpt4_side_by_side(image_bytes: bytes) -> ModelConditionResult | None:
     enabled = os.getenv("ENABLE_GPT4_SIDE_BY_SIDE", "false").strip().lower() in {"1", "true", "yes"}
-    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    api_key = _vlm_api_key()
     if not enabled or not api_key:
         return None
 
-    model = os.getenv("GPT4_VISION_MODEL", "gpt-4o")
+    model = _default_vlm_model()
     image_b64 = base64.b64encode(image_bytes).decode("ascii")
 
     instruction = (
@@ -88,7 +106,6 @@ def run_gpt4_side_by_side(image_bytes: bytes) -> ModelConditionResult | None:
     body = {
         "model": model,
         "temperature": 0.0,
-        "response_format": {"type": "json_object"},
         "messages": [
             {
                 "role": "user",
@@ -103,13 +120,18 @@ def run_gpt4_side_by_side(image_bytes: bytes) -> ModelConditionResult | None:
         ],
     }
 
+    # Groq does not support response_format for all vision models.
+    if _vlm_provider() != "groq":
+        body["response_format"] = {"type": "json_object"}
+
+    chat_url = f"{_vlm_base_url()}/chat/completions"
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
 
     try:
-        response = requests.post(OPENAI_CHAT_URL, headers=headers, json=body, timeout=45)
+        response = requests.post(chat_url, headers=headers, json=body, timeout=45)
         response.raise_for_status()
         payload = response.json()
         content = payload["choices"][0]["message"]["content"]

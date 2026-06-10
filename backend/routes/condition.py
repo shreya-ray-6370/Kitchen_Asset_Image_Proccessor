@@ -2,7 +2,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
 
-from backend.models.schemas import ConditionResponse, ScanHistoryItem, ScanHistoryResponse
+from backend.models.schemas import ApplianceMetadata, ConditionResponse, ScanHistoryItem, ScanHistoryResponse
 from backend.services.ai_service import get_condition
 from backend.services.sqlite_service import list_scan_records
 
@@ -16,6 +16,7 @@ def fetch_scan_history(request: Request) -> ScanHistoryResponse:
 
 	for row in list_scan_records():
 		filename = Path(row["image_path"]).name
+		metadata = ApplianceMetadata(**row["metadata_payload"]) if row.get("metadata_payload") else None
 		condition = (
 			ConditionResponse(**row["condition_payload"]) if row.get("condition_payload") else None
 		)
@@ -24,6 +25,7 @@ def fetch_scan_history(request: Request) -> ScanHistoryResponse:
 				scan_id=row["scan_id"],
 				image_url=f"{base_url}/uploads/{filename}",
 				created_at=row.get("created_at"),
+				metadata=metadata,
 				condition=condition,
 			)
 		)

@@ -4,8 +4,8 @@ import cv2
 import numpy as np
 
 from backend.db.in_memory_store import condition_store
-from backend.models.schemas import ConditionResponse, DefectTag, ModelConditionResult
-from backend.services.sqlite_service import get_condition_payload, save_condition
+from backend.models.schemas import ApplianceMetadata, ConditionResponse, DefectTag, ModelConditionResult
+from backend.services.sqlite_service import get_condition_payload, get_metadata_payload, save_condition
 from backend.services.vlm_service import run_gpt4_side_by_side
 
 
@@ -288,6 +288,8 @@ def run_condition_scoring(scan_id: str, image_bytes: bytes) -> ConditionResponse
 	opencv_condition = _score_image(scan_id, image)
 	opencv_result = _as_model_result("opencv", opencv_condition)
 	gpt4_result = run_gpt4_side_by_side(image_bytes)
+	metadata_payload = get_metadata_payload(scan_id)
+	metadata = ApplianceMetadata(**metadata_payload) if metadata_payload else None
 
 	condition = ConditionResponse(
 		scan_id=scan_id,
@@ -295,6 +297,7 @@ def run_condition_scoring(scan_id: str, image_bytes: bytes) -> ConditionResponse
 		defect_tags=opencv_condition.defect_tags,
 		severity=opencv_condition.severity,
 		recommended_action=opencv_condition.recommended_action,
+		metadata=metadata,
 		opencv_result=opencv_result,
 		gpt4_result=gpt4_result,
 		comparison_note=_comparison_note(opencv_result, gpt4_result),
@@ -315,5 +318,9 @@ def get_condition(scan_id: str) -> ConditionResponse | None:
 		return None
 
 	condition = ConditionResponse(**payload)
+	if condition.metadata is None:
+		metadata_payload = get_metadata_payload(scan_id)
+		if metadata_payload:
+			condition.metadata = ApplianceMetadata(**metadata_payload)
 	condition_store.upsert(condition)
 	return condition
